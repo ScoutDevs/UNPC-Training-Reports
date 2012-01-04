@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="District Youth Protection Report" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="FreeSans" fontSize="20" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="FreeSans" fontSize="16"/>
+	<style name="Column header" forecolor="#666666" fontName="FreeSans" fontSize="12" isBold="true">
+		<box topPadding="0" bottomPadding="0"/>
+	</style>
+	<style name="Detail" fontName="Liberation Sans" fontSize="12" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+	<parameter name="district_codes" class="java.util.Collection">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList(new String[]{"05"}))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subdistrict_codes" class="java.util.Collection">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList(new String[]{"05-9"}))]]></defaultValueExpression>
+	</parameter>
+	<parameter name="unit_numbers" class="java.util.Collection">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList(new String[]{"1455"}))]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT DISTINCT `l`.*, `u`.`unit_number`, `u`.`unit_type`, `u`.`sponsoring_organization`, `u`.`subdistrict_code`, `s`.`district_code`, `s`.`name` `subdistrict_name`, `d`.`name` `district_name`, `t`.`code` `training_code`, `t`.`name` `training_name`, IFNULL(`lt`.`date`, '') `trained_date`, CASE WHEN `lt`.`date` < NOW()-INTERVAL 1 YEAR THEN 'E' WHEN `lt`.`date` >= NOW()-INTERVAL 1 YEAR THEN 'C' ELSE 'N' END `trained_status` FROM `Leaders` `l` INNER JOIN `Leader_Unit` `lu` ON `l`.`id` = `lu`.`leader_id` INNER JOIN `Units` `u` ON `u`.`unit_type` = `lu`.`unit_type` AND `u`.`unit_number` = `lu`.`unit_number` INNER JOIN `Subdistricts` `s` ON `s`.`code` = `u`.`subdistrict_code` INNER JOIN `Districts` `d` ON `d`.`code` = `s`.`district_code` LEFT OUTER JOIN `Leader_Training` `lt` ON `lt`.`leader_id` = `l`.`id` AND `lt`.`training_code` IN ('Y01') LEFT OUTER JOIN `Trainings` `t` ON `lt`.`training_code` = `t`.`code` AND `t`.`active` = 1
+WHERE
+  $X{IN, `s`.`district_code`, district_codes}
+  AND $X{IN, `u`.`subdistrict_code`, subdistrict_codes}
+  AND $X{IN, `u`.`unit_number`, unit_numbers}
+GROUP BY `l`.`id` ORDER BY `u`.`subdistrict_code`, `u`.`unit_number`, `lt`.`date`]]>
+	</queryString>
+	<field name="id" class="java.lang.Long"/>
+	<field name="first_name" class="java.lang.String"/>
+	<field name="middle_name" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<field name="prefix" class="java.lang.String"/>
+	<field name="suffix" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="address1" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="city" class="java.lang.String"/>
+	<field name="state" class="java.lang.String"/>
+	<field name="zip" class="java.lang.String"/>
+	<field name="age" class="java.lang.Integer"/>
+	<field name="sex" class="java.lang.String"/>
+	<field name="eagle" class="java.lang.Integer"/>
+	<field name="unit_number" class="java.lang.Integer"/>
+	<field name="unit_type" class="java.lang.String"/>
+	<field name="sponsoring_organization" class="java.lang.String"/>
+	<field name="subdistrict_code" class="java.lang.String"/>
+	<field name="district_code" class="java.lang.String"/>
+	<field name="subdistrict_name" class="java.lang.String"/>
+	<field name="district_name" class="java.lang.String"/>
+	<field name="training_code" class="java.lang.String"/>
+	<field name="training_name" class="java.lang.String"/>
+	<field name="trained_date" class="java.lang.String"/>
+	<field name="trained_status" class="java.lang.String"/>
+	<variable name="current_COUNT" class="java.lang.Integer" resetType="Group" resetGroup="unit_number" calculation="Sum">
+		<variableExpression><![CDATA[($F{trained_status}.equals("C")?1:0)]]></variableExpression>
+	</variable>
+	<variable name="expired_COUNT" class="java.lang.Integer" resetType="Group" resetGroup="unit_number" calculation="Sum">
+		<variableExpression><![CDATA[($F{trained_status}.equals("E")?1:0)]]></variableExpression>
+	</variable>
+	<variable name="never_COUNT" class="java.lang.Integer" resetType="Group" resetGroup="unit_number" calculation="Sum">
+		<variableExpression><![CDATA[($F{trained_status}.equals("N")?1:0)]]></variableExpression>
+	</variable>
+	<group name="subdistrict_code" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{subdistrict_code}]]></groupExpression>
+		<groupFooter>
+			<band height="6"/>
+		</groupFooter>
+	</group>
+	<group name="unit_number" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{unit_number}]]></groupExpression>
+		<groupHeader>
+			<band height="86">
+				<textField>
+					<reportElement style="SubTitle" x="63" y="35" width="65" height="30" forecolor="#333333"/>
+					<textElement/>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$F{unit_number}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement style="SubTitle" x="0" y="35" width="63" height="30" forecolor="#333333"/>
+					<textElement/>
+					<text><![CDATA[Unit]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="Column header" x="63" y="65" width="65" height="17"/>
+					<textElement/>
+					<text><![CDATA[Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="Column header" x="197" y="65" width="160" height="17"/>
+					<textElement/>
+					<text><![CDATA[Email]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="Column header" x="357" y="65" width="105" height="17"/>
+					<textElement/>
+					<text><![CDATA[Phone]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="Column header" x="462" y="65" width="90" height="17"/>
+					<textElement textAlignment="Right"/>
+					<text><![CDATA[Trained]]></text>
+				</staticText>
+				<staticText>
+					<reportElement style="Column header" x="0" y="65" width="63" height="17"/>
+					<textElement>
+						<font fontName="FreeSans" size="12"/>
+					</textElement>
+					<text><![CDATA[ID	]]></text>
+				</staticText>
+				<textField>
+					<reportElement style="SubTitle" x="128" y="35" width="427" height="30" forecolor="#333333"/>
+					<textElement textAlignment="Right">
+						<font size="16" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{subdistrict_name}+" - "+$F{sponsoring_organization}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" mode="Transparent" x="0" y="83" width="555" height="1" forecolor="#666666"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+				<staticText>
+					<reportElement style="Title" x="0" y="0" width="327" height="33" forecolor="#000000"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Arial"/>
+					</textElement>
+					<text><![CDATA[Youth Protection Training]]></text>
+				</staticText>
+				<textField>
+					<reportElement style="SubTitle" x="327" y="0" width="228" height="33" forecolor="#333333"/>
+					<textElement textAlignment="Right" verticalAlignment="Bottom">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{district_name}+" District"]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="53">
+				<textField>
+					<reportElement x="513" y="3" width="39" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{current_COUNT}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="436" y="3" width="77" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Current:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="422" y="35" width="91" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Never Trained:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="436" y="19" width="77" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Expired:]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="513" y="19" width="39" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{expired_COUNT}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="513" y="35" width="39" height="16"/>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{never_COUNT}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="0" width="555" height="1" forecolor="#666666"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="unit_type">
+		<groupExpression><![CDATA[$F{unit_type}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<textField>
+				<reportElement style="Detail" x="0" y="0" width="63" height="16"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Detail" x="63" y="0" width="65" height="16"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{first_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Detail" x="128" y="0" width="63" height="16"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{last_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Detail" x="191" y="0" width="166" height="16"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{email}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Detail" x="357" y="0" width="105" height="16"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Detail" x="462" y="0" width="90" height="16"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{trained_date}+" "+$F{trained_status}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="14" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="555" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Column header" x="433" y="0" width="80" height="20"/>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement style="Column header" x="513" y="0" width="40" height="20"/>
+				<textElement>
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement style="Column header" x="0" y="0" width="197" height="20"/>
+				<textElement>
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
